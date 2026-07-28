@@ -23,6 +23,12 @@ CREATE TABLE projects (
     budget decimal CHECK(budget >= 0)
 );
 
+INSERT INTO project_status (name) VALUES
+    ('Not Started'),
+    ('In Progress'),
+    ('Completed'),
+    ('On Hold');
+
 -- Enable Row Level Security for all tables
 ALTER TABLE project_status ENABLE ROW LEVEL SECURITY;
 ALTER TABLE team_member ENABLE ROW LEVEL SECURITY;
