@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import Select from "./ui/select";
 
 type Project = {
     id: number;
@@ -28,6 +29,20 @@ type Status = {
     id: number;
     name: string;
 };
+
+function ProjectRow({ project }: { project: Project }) {
+    return (
+        <tr key={project.id} className="border-t border-border even:bg-muted">
+            <td className="px-4 py-3 text-sm font-medium">{project.name}</td>
+            <td className="px-4 py-3 text-sm">{project.project_status_id}</td>
+            <td className="px-4 py-3 text-sm">{project.deadline}</td>
+            <td className="px-4 py-3 text-sm">{project.team_member_id}</td>
+            <td className="px-4 py-3 text-sm">
+                {project.budget === null ? "—" : `$${project.budget.toFixed(2)}`}
+            </td>
+        </tr>        
+    );
+}
 
 export default function Datatable() {
     const [projects, setProjects] = useState<Project[]>([]);
@@ -138,9 +153,8 @@ export default function Datatable() {
 
                 <div className="flex flex-col gap-2 sm:items-end">
                     <Label htmlFor="page-size">Rows per page</Label>
-                    <select
+                    <Select
                         id="page-size"
-                        className="max-w-[120px] rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                         value={String(limit)}
                         onChange={(e) => {
                             setLimit(parseInt(e.target.value, 10));
@@ -152,8 +166,12 @@ export default function Datatable() {
                                 {value}
                             </option>
                         ))}
-                    </select>
+                    </Select>
                 </div>
+                {/* This communicates with the project dialog*/}
+                <Button command="show-modal" commandfor="project-dialog">
+                    Create Project
+                </Button>
             </div>
 
             <div className="overflow-x-auto rounded-xl border border-border bg-card">
@@ -188,17 +206,7 @@ export default function Datatable() {
                                 </td>
                             </tr>
                         ) : (
-                            projects.map((project) => (
-                                <tr key={project.id} className="border-t border-border even:bg-muted">
-                                    <td className="px-4 py-3 text-sm font-medium">{project.name}</td>
-                                    <td className="px-4 py-3 text-sm">{project.project_status_id}</td>
-                                    <td className="px-4 py-3 text-sm">{project.deadline}</td>
-                                    <td className="px-4 py-3 text-sm">{project.team_member_id}</td>
-                                    <td className="px-4 py-3 text-sm">
-                                        {project.budget === null ? "—" : `$${project.budget.toFixed(2)}`}
-                                    </td>
-                                </tr>
-                            ))
+                            projects.map((project) => <ProjectRow key={project.id} project={project} />)
                         )}
                     </tbody>
                 </table>

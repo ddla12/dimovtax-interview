@@ -1,18 +1,11 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import Datatable from "@/components/datatable";
-
-async function UserDetails() {
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.getClaims();
-
-  if (error || !data?.claims) {
-    redirect("/auth/login");
-  }
-
-  return JSON.stringify(data.claims, null, 2);
-}
+import ProjectDialog from "@/components/project-dialog";
 
 export default function HomePage() {
-  return <Datatable />;
+  return (
+    <section>
+      <ProjectDialog />
+      <Datatable />
+    </section>
+  );
 }
