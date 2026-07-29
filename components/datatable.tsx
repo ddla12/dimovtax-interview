@@ -6,6 +6,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import Select from "./ui/select";
 import ProjectDialog from "./project-dialog";
+import ConfirmDialog from "./confirm-dialog";
 import {
     getProjectStatusName,
     getProjectStatuses,
@@ -35,13 +36,27 @@ type ProjectsResponse = {
 
 interface ProjectRowProps {
     project: Project;
+    isSelected: boolean;
     onClickProject: (project: Project) => void;
+    onToggleSelect: (projectId: number) => void;
 }
 
-function ProjectRow({ project, onClickProject }: ProjectRowProps) {
+function ProjectRow({ project, isSelected, onClickProject, onToggleSelect }: ProjectRowProps) {
     return (
-        <tr 
-            onClick={() => onClickProject(project)} key={project.id} className="border-t border-border even:bg-muted">
+        <tr
+            onClick={() => onClickProject(project)}
+            key={project.id}
+            className="border-t border-border even:bg-muted cursor-pointer"
+        >
+            <td className="px-4 py-3 text-sm">
+                <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => onToggleSelect(project.id)}
+                    onClick={(event) => event.stopPropagation()}
+                    className="h-4 w-4 rounded border border-input text-primary focus:ring-primary"
+                />
+            </td>
             <td className="px-4 py-3 text-sm font-medium">{project.name}</td>
             <td className="px-4 py-3 text-sm">{getProjectStatusName(project.project_status_id)}</td>
             <td className="px-4 py-3 text-sm">{project.deadline}</td>
@@ -61,10 +76,13 @@ export default function Datatable() {
     const [name, setName] = useState("");
     const [statusId, setStatusId] = useState<string>("");
     const [isLoading, setIsLoading] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [totalPages, setTotalPages] = useState(1);
     const [selectedProject, setSelectedProject] = useState<Project | undefined>(undefined);
+    const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const dialogRef = useRef<HTMLDialogElement | null>(null);
+    const confirmDialogRef = useRef<HTMLDialogElement | null>(null);
 
     const openDialog = () => {
         dialogRef.current?.showModal();
@@ -82,6 +100,61 @@ export default function Datatable() {
 
     const handleCloseDialog = () => {
         setSelectedProject(undefined);
+    };
+
+    const openConfirmDialog = () => {
+        confirmDialogRef.current?.showModal();
+    };
+
+    const closeConfirmDialog = () => {
+        confirmDialogRef.current?.close();
+    };
+
+    const handleToggleSelect = (projectId: number) => {
+        setSelectedIds((current) =>
+            current.includes(projectId)
+                ? current.filter((id) => id !== projectId)
+                : [...current, projectId]
+        );
+    };
+
+    const handleToggleSelectAll = () => {
+        if (selectedIds.length === projects.length) {
+            setSelectedIds([]);
+            return;
+        }
+
+        setSelectedIds(projects.map((project) => project.id));
+    };
+
+    const handleRequestDelete = () => {
+        if (selectedIds.length === 0) return;
+        openConfirmDialog();
+    };
+
+    const handleConfirmDelete = async () => {
+        if (selectedIds.length === 0) return;
+
+        setIsDeleting(true);
+        try {
+            for (const id of selectedIds) {
+                const response = await fetch(`/api/projects?id=${id}`, {
+                    method: "DELETE",
+                });
+
+                const payload = await response.json();
+                if (!response.ok) {
+                    throw new Error((payload as { error?: string }).error || `Failed to delete project ${id}`);
+                }
+            }
+
+            window.location.reload();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Failed to delete selected projects");
+        } finally {
+            setIsDeleting(false);
+            closeConfirmDialog();
+        }
     };
 
     useEffect(() => {
@@ -186,9 +259,14 @@ export default function Datatable() {
                         ))}
                     </Select>
                 </div>
-                <Button type="button" onClick={handleCreateProject}>
-                    Create Project
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button type="button" onClick={handleRequestDelete} disabled={selectedIds.length === 0 || isDeleting} variant="destructive">
+                        Delete Selected{selectedIds.length > 0 ? ` (${selectedIds.length})` : ""}
+                    </Button>
+                    <Button type="button" onClick={handleCreateProject}>
+                        Create Project
+                    </Button>
+                </div>
             </div>
 
             <div className="overflow-x-auto rounded-xl border border-border bg-card">
@@ -196,6 +274,14 @@ export default function Datatable() {
                     <caption className="sr-only">Projects table</caption>
                     <thead>
                         <tr className="bg-muted text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                            <th className="px-4 py-3">
+                                <input
+                                    type="checkbox"
+                                    checked={projects.length > 0 && selectedIds.length === projects.length}
+                                    onChange={handleToggleSelectAll}
+                                    className="h-4 w-4 rounded border border-input text-primary focus:ring-primary"
+                                />
+                            </th>
                             <th className="px-4 py-3">Name</th>
                             <th className="px-4 py-3">Status</th>
                             <th className="px-4 py-3">Deadline</th>
@@ -206,25 +292,31 @@ export default function Datatable() {
                     <tbody>
                         {isLoading ? (
                             <tr>
-                                <td colSpan={5} className="px-4 py-6 text-center text-sm text-muted-foreground">
+                                <td colSpan={6} className="px-4 py-6 text-center text-sm text-muted-foreground">
                                     Loading projects...
                                 </td>
                             </tr>
                         ) : error ? (
                             <tr>
-                                <td colSpan={5} className="px-4 py-6 text-center text-sm text-destructive">
+                                <td colSpan={6} className="px-4 py-6 text-center text-sm text-destructive">
                                     {error}
                                 </td>
                             </tr>
                         ) : projects.length === 0 ? (
                             <tr>
-                                <td colSpan={5} className="px-4 py-6 text-center text-sm text-muted-foreground">
+                                <td colSpan={6} className="px-4 py-6 text-center text-sm text-muted-foreground">
                                     No projects found.
                                 </td>
                             </tr>
                         ) : (
                             projects.map((project) => (
-                                <ProjectRow key={project.id} project={project} onClickProject={handleClickProject} />
+                                <ProjectRow
+                                    key={project.id}
+                                    project={project}
+                                    isSelected={selectedIds.includes(project.id)}
+                                    onClickProject={handleClickProject}
+                                    onToggleSelect={handleToggleSelect}
+                                />
                             ))
                         )}
                     </tbody>
@@ -257,6 +349,13 @@ export default function Datatable() {
             </div>
 
             <ProjectDialog project={selectedProject} dialogRef={dialogRef} onClose={handleCloseDialog} />
+            <ConfirmDialog
+                dialogRef={confirmDialogRef}
+                selectedCount={selectedIds.length}
+                isDeleting={isDeleting}
+                onCancel={closeConfirmDialog}
+                onConfirm={handleConfirmDelete}
+            />
         </section>
     );
 }

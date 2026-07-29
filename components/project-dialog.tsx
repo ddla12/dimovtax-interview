@@ -76,7 +76,7 @@ function ProjectTeamMemberSelect({ value, onChange }: { value: string; onChange:
 
 interface ProjectDialogProps {
     project?: Project;
-    dialogRef?: React.RefObject<HTMLDialogElement>;
+    dialogRef?: React.RefObject<HTMLDialogElement | null>;
     onClose?: () => void;
 }
 
@@ -153,7 +153,12 @@ export default function ProjectDialog({ project, dialogRef, onClose }: ProjectDi
     };
 
     return (
-        <dialog id="project-dialog" ref={dialogRef} onClose={handleDialogClose}>
+        <dialog
+            id="project-dialog"
+            ref={dialogRef}
+            onClose={handleDialogClose}
+            className="backdrop:bg-black/50 backdrop:backdrop-blur-sm"
+        >
             <form method="dialog" className="p-4 rounded" onSubmit={onSubmit}>
                 <div>
                     <Label htmlFor="name">Project Name</Label>
