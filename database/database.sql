@@ -6,17 +6,17 @@ SET search_path TO public;
 
 CREATE TABLE project_status (
     id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    name varchar(16) NOT NULL
+    name varchar(16) NOT NULL UNIQUE
 );
 
 CREATE TABLE team_member (
     id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    name varchar(32) NOT NULL
+    name varchar(32) NOT NULL UNIQUE
 );
 
 CREATE TABLE projects (
     id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    name varchar(32) NOT NULL,
+    name varchar(32) NOT NULL UNIQUE,
     project_status_id bigint NOT NULL REFERENCES project_status(id) ON DELETE RESTRICT,
     deadline date NOT NULL,
     team_member_id bigint NOT NULL REFERENCES team_member(id) ON DELETE RESTRICT,

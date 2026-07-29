@@ -68,6 +68,45 @@ function ProjectRow({ project, isSelected, onClickProject, onToggleSelect }: Pro
     );
 }
 
+function ProjectCard({ project, isSelected, onClickProject, onToggleSelect }: ProjectRowProps) {
+    return (
+        <div
+            onClick={() => onClickProject(project)}
+            key={project.id}
+            className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4 shadow-sm transition hover:shadow-md md:hidden"
+            role="button"
+            tabIndex={0}
+            onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                    onClickProject(project);
+                }
+            }}
+        >
+            <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-3">
+                    <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => onToggleSelect(project.id)}
+                        onClick={(event) => event.stopPropagation()}
+                        className="mt-1 h-4 w-4 rounded border border-input text-primary focus:ring-primary"
+                    />
+                    <div>
+                        <p className="text-base font-medium">{project.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                            {getProjectStatusName(project.project_status_id)} · {project.deadline}
+                        </p>
+                    </div>
+                </div>
+                <div className="text-right text-sm">
+                    <p className="font-medium">{project.budget === null ? "—" : `$${project.budget.toFixed(2)}`}</p>
+                    <p className="text-muted-foreground">{getTeamMemberName(project.team_member_id)}</p>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export default function Datatable() {
     const [projects, setProjects] = useState<Project[]>([]);
     const [statuses, setStatuses] = useState<ProjectStatus[]>([]);
@@ -206,7 +245,7 @@ export default function Datatable() {
 
     return (
         <section className="w-full max-w-5xl p-4">
-            <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div className="grid gap-3 sm:grid-cols-[1fr_auto] items-end">
                     <div>
                         <Label htmlFor="project-search">Search projects</Label>
@@ -242,7 +281,7 @@ export default function Datatable() {
                     </div>
                 </div>
 
-                <div className="flex flex-col gap-2 sm:items-end">
+                <div className="flex flex-col gap-2 sm:items-end sm:text-right">
                     <Label htmlFor="page-size">Rows per page</Label>
                     <Select
                         id="page-size"
@@ -251,6 +290,7 @@ export default function Datatable() {
                             setLimit(parseInt(e.target.value, 10));
                             setPage(1);
                         }}
+                        className="w-full sm:w-[180px]"
                     >
                         {[10, 25, 50].map((value) => (
                             <option key={value} value={value}>
@@ -259,68 +299,96 @@ export default function Datatable() {
                         ))}
                     </Select>
                 </div>
-                <div className="flex items-center gap-2">
-                    <Button type="button" onClick={handleRequestDelete} disabled={selectedIds.length === 0 || isDeleting} variant="destructive">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-end">
+                    <Button type="button" className="w-full sm:w-auto" onClick={handleRequestDelete} disabled={selectedIds.length === 0 || isDeleting} variant="destructive">
                         Delete Selected{selectedIds.length > 0 ? ` (${selectedIds.length})` : ""}
                     </Button>
-                    <Button type="button" onClick={handleCreateProject}>
+                    <Button type="button" className="w-full sm:w-auto" onClick={handleCreateProject}>
                         Create Project
                     </Button>
                 </div>
             </div>
 
-            <div className="overflow-x-auto rounded-xl border border-border bg-card">
-                <table className="min-w-full border-collapse text-left">
-                    <caption className="sr-only">Projects table</caption>
-                    <thead>
-                        <tr className="bg-muted text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                            <th className="px-4 py-3">
-                                <input
-                                    type="checkbox"
-                                    checked={projects.length > 0 && selectedIds.length === projects.length}
-                                    onChange={handleToggleSelectAll}
-                                    className="h-4 w-4 rounded border border-input text-primary focus:ring-primary"
-                                />
-                            </th>
-                            <th className="px-4 py-3">Name</th>
-                            <th className="px-4 py-3">Status</th>
-                            <th className="px-4 py-3">Deadline</th>
-                            <th className="px-4 py-3">Team member</th>
-                            <th className="px-4 py-3">Budget</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {isLoading ? (
-                            <tr>
-                                <td colSpan={6} className="px-4 py-6 text-center text-sm text-muted-foreground">
-                                    Loading projects...
-                                </td>
+            <div className="overflow-hidden rounded-xl border border-border bg-card">
+                <div className="grid gap-4 p-4 md:hidden">
+                    {isLoading ? (
+                        <div className="rounded-xl border border-border bg-background p-4 text-center text-sm text-muted-foreground">
+                            Loading projects...
+                        </div>
+                    ) : error ? (
+                        <div className="rounded-xl border border-border bg-background p-4 text-center text-sm text-destructive">
+                            {error}
+                        </div>
+                    ) : projects.length === 0 ? (
+                        <div className="rounded-xl border border-border bg-background p-4 text-center text-sm text-muted-foreground">
+                            No projects found.
+                        </div>
+                    ) : (
+                        projects.map((project) => (
+                            <ProjectCard
+                                key={project.id}
+                                project={project}
+                                isSelected={selectedIds.includes(project.id)}
+                                onClickProject={handleClickProject}
+                                onToggleSelect={handleToggleSelect}
+                            />
+                        ))
+                    )}
+                </div>
+
+                <div className="overflow-x-auto md:block hidden">
+                    <table className="min-w-full w-full border-collapse text-left">
+                        <caption className="sr-only">Projects table</caption>
+                        <thead>
+                            <tr className="bg-muted text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                                <th className="px-4 py-3">
+                                    <input
+                                        type="checkbox"
+                                        checked={projects.length > 0 && selectedIds.length === projects.length}
+                                        onChange={handleToggleSelectAll}
+                                        className="h-4 w-4 rounded border border-input text-primary focus:ring-primary"
+                                    />
+                                </th>
+                                <th className="px-4 py-3">Name</th>
+                                <th className="px-4 py-3">Status</th>
+                                <th className="px-4 py-3">Deadline</th>
+                                <th className="px-4 py-3">Team member</th>
+                                <th className="px-4 py-3">Budget</th>
                             </tr>
-                        ) : error ? (
-                            <tr>
-                                <td colSpan={6} className="px-4 py-6 text-center text-sm text-destructive">
-                                    {error}
-                                </td>
-                            </tr>
-                        ) : projects.length === 0 ? (
-                            <tr>
-                                <td colSpan={6} className="px-4 py-6 text-center text-sm text-muted-foreground">
-                                    No projects found.
-                                </td>
-                            </tr>
-                        ) : (
-                            projects.map((project) => (
-                                <ProjectRow
-                                    key={project.id}
-                                    project={project}
-                                    isSelected={selectedIds.includes(project.id)}
-                                    onClickProject={handleClickProject}
-                                    onToggleSelect={handleToggleSelect}
-                                />
-                            ))
-                        )}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {isLoading ? (
+                                <tr>
+                                    <td colSpan={6} className="px-4 py-6 text-center text-sm text-muted-foreground">
+                                        Loading projects...
+                                    </td>
+                                </tr>
+                            ) : error ? (
+                                <tr>
+                                    <td colSpan={6} className="px-4 py-6 text-center text-sm text-destructive">
+                                        {error}
+                                    </td>
+                                </tr>
+                            ) : projects.length === 0 ? (
+                                <tr>
+                                    <td colSpan={6} className="px-4 py-6 text-center text-sm text-muted-foreground">
+                                        No projects found.
+                                    </td>
+                                </tr>
+                            ) : (
+                                projects.map((project) => (
+                                    <ProjectRow
+                                        key={project.id}
+                                        project={project}
+                                        isSelected={selectedIds.includes(project.id)}
+                                        onClickProject={handleClickProject}
+                                        onToggleSelect={handleToggleSelect}
+                                    />
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

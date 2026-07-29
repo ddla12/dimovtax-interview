@@ -60,10 +60,27 @@ export async function POST(request: Request) {
 
     const supabase = await createClient();
 
+    // Basic input validation to return helpful errors to the client
+    if (!name || !name.trim()) {
+      return Response.json({ error: 'Project name is required' }, { status: 400 });
+    }
+
+    if (Number.isNaN(project_status_id)) {
+      return Response.json({ error: 'Valid project_status_id is required' }, { status: 400 });
+    }
+
+    if (!deadline) {
+      return Response.json({ error: 'Deadline is required' }, { status: 400 });
+    }
+
+    if (Number.isNaN(team_member_id)) {
+      return Response.json({ error: 'Valid team_member_id is required' }, { status: 400 });
+    }
+
     const { data, error } = await supabase
       .from('projects')
       .insert({
-        name,
+        name: name.trim(),
         project_status_id,
         deadline,
         team_member_id,
@@ -72,7 +89,10 @@ export async function POST(request: Request) {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      const msg = [error.message, (error as any).details, (error as any).hint].filter(Boolean).join(' — ');
+      return Response.json({ error: msg || 'Failed to create project' }, { status: 400 });
+    }
 
     return Response.json(data, { status: 201 });
   } catch (error) {
@@ -91,7 +111,7 @@ export async function PUT(request: Request) {
     const project_status_id = formData.get('project_status_id') ? parseInt(formData.get('project_status_id') as string) : undefined;
     const deadline = formData.get('deadline') as string;
     const team_member_id = formData.get('team_member_id') ? parseInt(formData.get('team_member_id') as string) : undefined;
-    const budget = formData.get('budget.') ? parseFloat(formData.get('budget') as string) : undefined;
+    const budget = formData.get('budget') ? parseFloat(formData.get('budget') as string) : undefined;
 
     const updates: Record<string, any> = { name, deadline };
 
@@ -101,6 +121,10 @@ export async function PUT(request: Request) {
 
     const supabase = await createClient();
 
+    if (Number.isNaN(id)) {
+      return Response.json({ error: 'Valid project id is required' }, { status: 400 });
+    }
+
     const { data, error } = await supabase
       .from('projects')
       .update(updates as never)
@@ -108,7 +132,10 @@ export async function PUT(request: Request) {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      const msg = [error.message, (error as any).details, (error as any).hint].filter(Boolean).join(' — ');
+      return Response.json({ error: msg || 'Failed to update project' }, { status: 400 });
+    }
 
     return Response.json(data);
   } catch (error) {
@@ -124,6 +151,10 @@ export async function DELETE(request: Request) {
     const { searchParams } = new URL(request.url);
     const id = parseInt(searchParams.get('id') as string);
 
+    if (Number.isNaN(id)) {
+      return Response.json({ error: 'Valid project id is required' }, { status: 400 });
+    }
+
     const supabase = await createClient();
 
     const { data, error } = await supabase
@@ -132,8 +163,14 @@ export async function DELETE(request: Request) {
       .eq('id', id)
       .select()
       .single();
+    if (error) {
+      const msg = [error.message, (error as any).details, (error as any).hint].filter(Boolean).join(' — ');
+      return Response.json({ error: msg || 'Failed to delete project' }, { status: 400 });
+    }
 
-    if (error) throw error;
+    if (!data) {
+      return Response.json({ error: 'Project not found' }, { status: 404 });
+    }
 
     return Response.json(data);
   } catch (error) {
