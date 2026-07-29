@@ -1,10 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import Select from "./ui/select";
+import ProjectDialog from "./project-dialog";
+import {
+    getProjectStatusName,
+    getProjectStatuses,
+    getTeamMemberName,
+    loadLookupData,
+    type ProjectStatus,
+} from "@/lib/lookup";
 
 type Project = {
     id: number;
@@ -25,28 +33,29 @@ type ProjectsResponse = {
     };
 };
 
-type Status = {
-    id: number;
-    name: string;
-};
+interface ProjectRowProps {
+    project: Project;
+    onClickProject: (project: Project) => void;
+}
 
-function ProjectRow({ project }: { project: Project }) {
+function ProjectRow({ project, onClickProject }: ProjectRowProps) {
     return (
-        <tr key={project.id} className="border-t border-border even:bg-muted">
+        <tr 
+            onClick={() => onClickProject(project)} key={project.id} className="border-t border-border even:bg-muted">
             <td className="px-4 py-3 text-sm font-medium">{project.name}</td>
-            <td className="px-4 py-3 text-sm">{project.project_status_id}</td>
+            <td className="px-4 py-3 text-sm">{getProjectStatusName(project.project_status_id)}</td>
             <td className="px-4 py-3 text-sm">{project.deadline}</td>
-            <td className="px-4 py-3 text-sm">{project.team_member_id}</td>
+            <td className="px-4 py-3 text-sm">{getTeamMemberName(project.team_member_id)}</td>
             <td className="px-4 py-3 text-sm">
                 {project.budget === null ? "—" : `$${project.budget.toFixed(2)}`}
             </td>
-        </tr>        
+        </tr>
     );
 }
 
 export default function Datatable() {
     const [projects, setProjects] = useState<Project[]>([]);
-    const [statuses, setStatuses] = useState<Status[]>([]);
+    const [statuses, setStatuses] = useState<ProjectStatus[]>([]);
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [name, setName] = useState("");
@@ -54,22 +63,31 @@ export default function Datatable() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [totalPages, setTotalPages] = useState(1);
+    const [selectedProject, setSelectedProject] = useState<Project | undefined>(undefined);
+    const dialogRef = useRef<HTMLDialogElement | null>(null);
+
+    const openDialog = () => {
+        dialogRef.current?.showModal();
+    };
+
+    const handleCreateProject = () => {
+        setSelectedProject(undefined);
+        openDialog();
+    };
+
+    const handleClickProject = (project: Project) => {
+        setSelectedProject(project);
+        openDialog();
+    };
+
+    const handleCloseDialog = () => {
+        setSelectedProject(undefined);
+    };
 
     useEffect(() => {
-        async function loadStatuses() {
-            try {
-                const res = await fetch("/api/project-status");
-                if (!res.ok) {
-                    throw new Error("Failed to load project statuses");
-                }
-                const data: Status[] = await res.json();
-                setStatuses(data);
-            } catch (err) {
-                console.error(err);
-            }
-        }
-
-        loadStatuses();
+        loadLookupData()
+            .then(() => setStatuses(getProjectStatuses()))
+            .catch((err) => console.error(err));
     }, []);
 
     useEffect(() => {
@@ -168,8 +186,7 @@ export default function Datatable() {
                         ))}
                     </Select>
                 </div>
-                {/* This communicates with the project dialog*/}
-                <Button command="show-modal" commandfor="project-dialog">
+                <Button type="button" onClick={handleCreateProject}>
                     Create Project
                 </Button>
             </div>
@@ -206,7 +223,9 @@ export default function Datatable() {
                                 </td>
                             </tr>
                         ) : (
-                            projects.map((project) => <ProjectRow key={project.id} project={project} />)
+                            projects.map((project) => (
+                                <ProjectRow key={project.id} project={project} onClickProject={handleClickProject} />
+                            ))
                         )}
                     </tbody>
                 </table>
@@ -236,6 +255,8 @@ export default function Datatable() {
                     </Button>
                 </div>
             </div>
+
+            <ProjectDialog project={selectedProject} dialogRef={dialogRef} onClose={handleCloseDialog} />
         </section>
     );
 }
