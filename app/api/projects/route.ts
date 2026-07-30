@@ -1,6 +1,25 @@
 import { createClient } from "@/lib/supabase/server";
 import { Tables } from "@/database.types";
 
+function formatProjectError(error: unknown, fallback: string) {
+  const details = error as { message?: string; details?: string; hint?: string; code?: string };
+  const combined = [details.message, details.details, details.hint]
+    .filter(Boolean)
+    .join(" — ");
+  const normalized = `${combined} ${details.code ?? ""}`.toLowerCase();
+
+  if (
+    /duplicate key value violates unique constraint/i.test(normalized) ||
+    /name_uniq/i.test(normalized) ||
+    /23505/.test(normalized) ||
+    /already exists/i.test(normalized)
+  ) {
+    return "A project with this name already exists. Please choose a different name.";
+  }
+
+  return combined || fallback;
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -90,8 +109,7 @@ export async function POST(request: Request) {
       .single();
 
     if (error) {
-      const msg = [error.message, (error as any).details, (error as any).hint].filter(Boolean).join(' — ');
-      return Response.json({ error: msg || 'Failed to create project' }, { status: 400 });
+      return Response.json({ error: formatProjectError(error, 'Failed to create project') }, { status: 400 });
     }
 
     return Response.json(data, { status: 201 });
@@ -133,8 +151,7 @@ export async function PUT(request: Request) {
       .single();
 
     if (error) {
-      const msg = [error.message, (error as any).details, (error as any).hint].filter(Boolean).join(' — ');
-      return Response.json({ error: msg || 'Failed to update project' }, { status: 400 });
+      return Response.json({ error: formatProjectError(error, 'Failed to update project') }, { status: 400 });
     }
 
     return Response.json(data);
