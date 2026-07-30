@@ -3,6 +3,10 @@ import { Button } from "./ui/button";
 import { createClient } from "@/lib/supabase/server";
 import { LogoutButton } from "./logout-button";
 
+/**
+ * Shows either the sign-in/sign-up actions or the current user's account controls.
+ * The component reads the Supabase auth claims on the server.
+ */
 export async function AuthButton() {
   const supabase = await createClient();
 

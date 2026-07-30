@@ -9,8 +9,8 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "Starter Kit",
-  description: "A starter application with authentication and database access",
+  title: "DIMOVTAX Interview",
+  description: "An assignment for the Fullstack Developer position at DIMOVTAX",
 };
 
 const geistSans = Geist({

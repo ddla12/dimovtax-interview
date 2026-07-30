@@ -11,6 +11,9 @@ interface ConfirmDialogProps {
   onConfirm: () => void;
 }
 
+/**
+ * Confirmation dialog used before deleting one or more selected projects.
+ */
 export default function ConfirmDialog({
   dialogRef,
   selectedCount,

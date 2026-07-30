@@ -15,6 +15,9 @@ import {
     type ProjectStatus,
 } from "@/lib/lookup";
 
+/**
+ * Shape of a project row shown in the data table.
+ */
 type Project = {
     id: number;
     name: string;
@@ -24,6 +27,9 @@ type Project = {
     budget: number | null;
 };
 
+/**
+ * API response shape returned by the projects listing endpoint.
+ */
 type ProjectsResponse = {
     data: Project[];
     pagination: {
@@ -41,6 +47,9 @@ interface ProjectRowProps {
     onToggleSelect: (projectId: number) => void;
 }
 
+/**
+ * Renders a single project row in the desktop table view.
+ */
 function ProjectRow({ project, isSelected, onClickProject, onToggleSelect }: ProjectRowProps) {
     return (
         <tr
@@ -68,6 +77,9 @@ function ProjectRow({ project, isSelected, onClickProject, onToggleSelect }: Pro
     );
 }
 
+/**
+ * Renders a single project card for small-screen layouts.
+ */
 function ProjectCard({ project, isSelected, onClickProject, onToggleSelect }: ProjectRowProps) {
     return (
         <div
@@ -107,6 +119,9 @@ function ProjectCard({ project, isSelected, onClickProject, onToggleSelect }: Pr
     );
 }
 
+/**
+ * Main project listing screen with search, filtering, pagination, and CRUD actions.
+ */
 export default function Datatable() {
     const [projects, setProjects] = useState<Project[]>([]);
     const [statuses, setStatuses] = useState<ProjectStatus[]>([]);

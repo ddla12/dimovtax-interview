@@ -16,6 +16,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+/**
+ * Client-side login form that authenticates the user with Supabase.
+ */
 export function LoginForm({
   className,
   ...props

@@ -1,5 +1,8 @@
 "use client";
 
+/**
+ * Thin wrapper around the native select element with shared styling.
+ */
 export default function Select({ children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement>) {
     return (
     <select

@@ -13,6 +13,9 @@ import {
     type TeamMember,
 } from "@/lib/lookup";
 
+/**
+ * Shape of a project record used by the UI and API layer.
+ */
 type Project = {
     id: number;
     name: string;
@@ -22,6 +25,9 @@ type Project = {
     budget: number | null;
 };
 
+/**
+ * Dropdown for selecting a project status from the lookup data.
+ */
 function ProjectStatusSelect({ value, onChange }: { value: string; onChange: (val: string) => void }) {
     const [projectStatuses, setProjectStatuses] = useState<ProjectStatus[]>([]);
 
@@ -48,6 +54,9 @@ function ProjectStatusSelect({ value, onChange }: { value: string; onChange: (va
     );
 }
 
+/**
+ * Dropdown for selecting the assigned team member from the lookup data.
+ */
 function ProjectTeamMemberSelect({ value, onChange }: { value: string; onChange: (val: string) => void }) {
     const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
 
@@ -80,6 +89,10 @@ interface ProjectDialogProps {
     onClose?: () => void;
 }
 
+/**
+ * Modal form for creating or editing a project.
+ * It submits form data to the projects API route and shows server-side errors inline.
+ */
 export default function ProjectDialog({ project, dialogRef, onClose }: ProjectDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [name, setName] = useState(project?.name ?? "");

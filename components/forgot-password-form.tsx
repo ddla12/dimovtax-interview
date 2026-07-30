@@ -15,6 +15,9 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useState } from "react";
 
+/**
+ * Form that allows a user to request a password reset email through Supabase Auth.
+ */
 export function ForgotPasswordForm({
   className,
   ...props

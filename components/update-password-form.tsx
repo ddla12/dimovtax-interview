@@ -15,6 +15,9 @@ import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+/**
+ * Form used to set a new password after a Supabase password reset flow.
+ */
 export function UpdatePasswordForm({
   className,
   ...props

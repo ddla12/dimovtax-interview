@@ -4,6 +4,9 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
+/**
+ * Renders a logout action that signs the user out and redirects them to the login page.
+ */
 export function LogoutButton() {
   const router = useRouter();
 

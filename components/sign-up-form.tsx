@@ -16,6 +16,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+/**
+ * Registration form that creates a new Supabase account for the user.
+ */
 export function SignUpForm({
   className,
   ...props
