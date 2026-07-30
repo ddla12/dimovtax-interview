@@ -9,21 +9,10 @@ import {
     getProjectStatuses,
     getTeamMembers,
     loadLookupData,
-    type ProjectStatus,
     type TeamMember,
 } from "@/lib/lookup";
+import { Project, ProjectStatus } from "@/lib/types";
 
-/**
- * Shape of a project record used by the UI and API layer.
- */
-type Project = {
-    id: number;
-    name: string;
-    project_status_id: number;
-    deadline: string;
-    team_member_id: number;
-    budget: number | null;
-};
 
 /**
  * Dropdown for selecting a project status from the lookup data.

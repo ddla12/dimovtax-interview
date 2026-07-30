@@ -1,10 +1,4 @@
-/**
- * Represents a project status option loaded from the database.
- */
-export type ProjectStatus = {
-  id: number;
-  name: string;
-};
+import { ProjectStatus } from "./types";
 
 /**
  * Represents a team member option loaded from the database.

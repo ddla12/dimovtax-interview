@@ -12,20 +12,8 @@ import {
     getProjectStatuses,
     getTeamMemberName,
     loadLookupData,
-    type ProjectStatus,
 } from "@/lib/lookup";
-
-/**
- * Shape of a project row shown in the data table.
- */
-type Project = {
-    id: number;
-    name: string;
-    project_status_id: number;
-    deadline: string;
-    team_member_id: number;
-    budget: number | null;
-};
+import { Project, ProjectStatus } from "@/lib/types";
 
 /**
  * API response shape returned by the projects listing endpoint.
