@@ -31,6 +31,7 @@ function ProjectStatusSelect({ value, onChange }: { value: string; onChange: (va
             name="project_status_id"
             id="project_status_id"
             value={value}
+            required
             onChange={(e) => onChange(e.target.value)}
         >
             <option value="">Select a status</option>
@@ -60,6 +61,7 @@ function ProjectTeamMemberSelect({ value, onChange }: { value: string; onChange:
             name="team_member_id"
             id="team_member_id"
             value={value}
+            required
             onChange={(e) => onChange(e.target.value)}
         >
             <option value="">Select a team member</option>

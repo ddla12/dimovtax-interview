@@ -16,6 +16,28 @@ import {
 import { Project, ProjectStatus } from "@/lib/types";
 
 /**
+ * Maps project status names to badge styling classes.
+ */
+function ProjectStatusBadge({ statusName }: { statusName: string }) {
+    const normalizedStatus = statusName.toLowerCase();
+
+    const styles: Record<string, string> = {
+        "not started": "border border-red-500/30 bg-red-500/15 text-red-200",
+        "in progress": "border border-sky-500/30 bg-sky-500/15 text-sky-200",
+        completed: "border border-emerald-500/30 bg-emerald-500/15 text-emerald-200",
+        "on hold": "border border-slate-500/30 bg-slate-500/15 text-slate-200",
+    };
+
+    const className = styles[normalizedStatus] ?? "border border-border bg-muted text-muted-foreground";
+
+    return (
+        <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${className}`}>
+            {statusName}
+        </span>
+    );
+}
+
+/**
  * API response shape returned by the projects listing endpoint.
  */
 type ProjectsResponse = {
@@ -55,7 +77,9 @@ function ProjectRow({ project, isSelected, onClickProject, onToggleSelect }: Pro
                 />
             </td>
             <td className="px-4 py-3 text-sm font-medium">{project.name}</td>
-            <td className="px-4 py-3 text-sm">{getProjectStatusName(project.project_status_id)}</td>
+            <td className="px-4 py-3 text-sm">
+                <ProjectStatusBadge statusName={getProjectStatusName(project.project_status_id)} />
+            </td>
             <td className="px-4 py-3 text-sm">{project.deadline}</td>
             <td className="px-4 py-3 text-sm">{getTeamMemberName(project.team_member_id)}</td>
             <td className="px-4 py-3 text-sm">
@@ -93,9 +117,10 @@ function ProjectCard({ project, isSelected, onClickProject, onToggleSelect }: Pr
                     />
                     <div>
                         <p className="text-base font-medium">{project.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                            {getProjectStatusName(project.project_status_id)} · {project.deadline}
-                        </p>
+                        <div className="mt-1 flex flex-wrap items-center gap-2">
+                            <ProjectStatusBadge statusName={getProjectStatusName(project.project_status_id)} />
+                            <p className="text-sm text-muted-foreground">{project.deadline}</p>
+                        </div>
                     </div>
                 </div>
                 <div className="text-right text-sm">
@@ -263,11 +288,10 @@ export default function Datatable() {
                             placeholder="Search by name"
                         />
                     </div>
-                    <div>
+                    <div className="flex flex-col gap-2">
                         <Label htmlFor="status-filter">Status</Label>
-                        <select
+                        <Select
                             id="status-filter"
-                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                             value={statusId}
                             onChange={(e) => {
                                 setPage(1);
@@ -280,11 +304,11 @@ export default function Datatable() {
                                     {status.name}
                                 </option>
                             ))}
-                        </select>
+                        </Select>
                     </div>
                 </div>
 
-                <div className="flex flex-col gap-2 sm:items-end sm:text-right">
+                <div className="flex flex-col gap-2">
                     <Label htmlFor="page-size">Rows per page</Label>
                     <Select
                         id="page-size"
@@ -293,7 +317,6 @@ export default function Datatable() {
                             setLimit(parseInt(e.target.value, 10));
                             setPage(1);
                         }}
-                        className="w-full sm:w-[180px]"
                     >
                         {[10, 25, 50].map((value) => (
                             <option key={value} value={value}>
